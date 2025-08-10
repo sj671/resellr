@@ -1,0 +1,121 @@
+---
+globs:
+  - "app/**"
+  - "pages/**"
+  - "components/**"
+  - "lib/**"
+  - "supabase/**"
+  - "**/*.{ts,tsx,md,mdx}"
+alwaysApply: false
+---
+
+# Goals
+- Ship fast pages by default; minimize client JS; keep bundles lean.
+- Standardize DX (lint/format/hooks).
+- Prefer safe data fetching + caching patterns.
+- Enforce basic security/SEO hygiene.
+- Use correct Supabase + RLS patterns.
+
+# 1) Page Speed & Rendering (Next.js)
+- Prefer **SSG/ISR** for public, stable pages. Use `revalidate` for freshness.
+- Use `<Image />` for all images and `next/font` for fonts.
+- Lazy-load heavy UI via `next/dynamic` (no SSR if non-critical).
+- Avoid `"use client"` unless needed; keep logic in **server components** when possible.
+- Strip unused polyfills/3rd-party scripts; load non-critical scripts with `strategy="lazyOnload"`.
+
+**Example**
+```ts
+// app/(marketing)/page.tsx
+export const revalidate = 60; // ISR
+
+// Lazy non-critical widget
+const Reviews = dynamic(() => import("@/components/Reviews"), { ssr: false });
+```
+
+**When asked to convert a page**, prefer:
+- SSG if data changes rarely, ISR if it updates, SSR only when truly dynamic.
+
+# 2) Error & Performance Telemetry
+- Initialize either **Sentry** or `@hyperlook/telemetry-sdk` in both server & client as appropriate.
+- Capture errors in API routes and app entry points.
+
+**Sentry init (client example)**
+```ts
+import * as Sentry from "@sentry/nextjs";
+Sentry.init({ dsn: process.env.SENTRY_DSN });
+```
+
+# 3) Bundle Size
+- Add `@next/bundle-analyzer` and fail PRs that increase JS by >10% in `app` routes.
+- Never import whole libs (e.g., `import _ from "lodash"`). Import by path (`lodash/debounce`).
+- Prefer date-fns over moment; avoid large icons bundles—tree-shake or per-icon imports.
+
+# 4) Dev Speed & Consistency
+- Enforce **ESLint + Prettier**, run via **Husky** pre-commit.
+- Encourage barrel exports only for stable modules; avoid mega barrels that hinder tree-shaking.
+- Organize `app/` by route groups and colocate components in `app/(group)/_components`.
+
+# 5) Data Fetching & UI Caching
+- For client caching, prefer **SWR** or **TanStack Query**; define stable keys; enable background revalidation.
+- Put fetchers in `lib/api/` and keep components declarative.
+
+**SWR example**
+```ts
+import useSWR from "swr";
+const { data, error } = useSWR(["/api/user"], (k) => fetch(k[0]).then(r => r.json()));
+```
+
+# 6) Security Baselines
+- Cookies: set `httpOnly`, `secure`, `sameSite="lax"` (or `strict`).
+- Sanitize any user HTML with **DOMPurify** (server-side when possible).
+- Validate all API inputs; return typed errors. Never trust `NEXT_PUBLIC_*` for secrets.
+
+# 7) SEO Essentials
+- Use semantic HTML & ARIA; set `metadata` or `head` tags for title/description.
+- Generate sitemap/robots via **next-sitemap** and keep canonical URLs consistent.
+- Run Lighthouse SEO audits and address top issues (headings, alt text, meta).
+
+# 8) Supabase Usage
+- Never expose private keys in client; use server routes or RLS-safe queries.
+- Paginate anything >50 rows; use batch inserts/UPSERT where appropriate.
+- Always unsubscribe from Supabase realtime listeners on unmount.
+
+# 9) RLS (Row-Level Security)
+- Enable RLS on all user-owned tables; base policies on `auth.uid()`.
+- Ensure **joined tables** also have compatible policies.
+- Add integration tests that prove users only see their own rows.
+
+# 10) “Test Like a User”
+- Manually verify: Incognito, mobile viewport, Network throttling (e.g., Slow 3G).
+- Note: Cursor cannot run Lighthouse or DevTools throttling—perform in browser.
+
+---
+
+## Checklists
+
+### PR Checklist (block if not met)
+- [ ] No increase >10% in total JS for changed routes (bundle analyzer run).
+- [ ] Images use `<Image />`; fonts via `next/font`.
+- [ ] New endpoints validate input (zod or equivalent) and sanitize output where needed.
+- [ ] If Supabase used, confirm: pagination + no secrets in client + RLS policies exist.
+- [ ] Added/updated sitemap/metadata for new public routes.
+
+### Commands & Snippets
+```bash
+# Bundle analyzer
+pnpm add -D @next/bundle-analyzer
+# in next.config.mjs
+const withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' });
+export default withBundleAnalyzer({ /* next config */ });
+
+# Lint/format/hooks
+pnpm add -D eslint prettier husky lint-staged
+pnpm dlx husky init
+```
+
+### Prompts to reuse in Cursor
+- “Convert this page to SSG/ISR where possible and lazy-load non-critical components with next/dynamic.”
+- “Set up Sentry (or @hyperlook/telemetry-sdk) across client/server and wrap API handlers with error capture.”
+- “Introduce SWR/TanStack Query for this fetch, with stable keys and background revalidation.”
+- “Add next-sitemap and metadata for these routes; propose titles/descriptions.”
+- “Audit Supabase usage here for pagination, secret handling, and RLS; suggest fixes.”
