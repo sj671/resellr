@@ -5,6 +5,9 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({ enabled: process.e
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Dev-only origins you allow for cross-origin operations (e.g., tunnels)
+export const allowedDevOrigins = [ ];
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

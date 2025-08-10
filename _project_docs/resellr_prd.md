@@ -48,6 +48,7 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
 - OAuth connection, background pulls for Orders & active Listings
 - Mapping to local tables; idempotent upserts
 - Manual sale entry for non‑eBay marketplaces
+ - See `_project_docs/resellr_phase3_tasks.md` for detailed tasks and acceptance criteria.
 
 ### Phase 4 — Insights & Exports
 - KPIs (Revenue, Fees, COGS, Net, ROI, Sell‑Through)
