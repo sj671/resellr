@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseRSCClient } from "@/lib/supabase/server";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -18,6 +19,10 @@ export default async function SalesPage({
   const to = from + pageSize - 1;
 
   const supabase = await createSupabaseRSCClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/sales");
   let builder = supabase
     .from("sales")
     .select("id,sale_date,quantity,gross_amount,fees,shipping_income,shipping_cost,tax,created_at", { count: "exact" })

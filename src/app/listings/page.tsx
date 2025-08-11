@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseRSCClient } from "@/lib/supabase/server";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import ListingActions from "./_components/ListingActions";
@@ -19,6 +20,10 @@ export default async function ListingsPage({
   const to = from + pageSize - 1;
 
   const supabase = await createSupabaseRSCClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/listings");
   let builder = supabase
     .from("listings")
     .select("id,title,marketplace,price,status,listed_at,created_at", { count: "exact" })

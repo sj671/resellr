@@ -67,8 +67,9 @@ function SyncNowButton() {
       }
       const count = json?.count ?? 0;
       setMessage(`Triggered sync for orders. Received ${count} item(s).`);
-    } catch (err: any) {
-      setMessage(`Sync failed: ${err?.message || String(err)}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setMessage(`Sync failed: ${message}`);
     } finally {
       setLoading(false);
     }

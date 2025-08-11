@@ -16,7 +16,8 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .maybeSingle();
 
-  const display = profile?.display_name ?? profile?.email ?? user.email ?? "User";
+  const displayName = profile?.display_name ?? profile?.email ?? user.email ?? "User";
+  void displayName; // avoid unused var warning for now
 
   const since = new Date();
   since.setDate(since.getDate() - 30);
@@ -53,12 +54,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Welcome, {display}</h1>
-        <form action="/auth/signout" method="post">
-          <button className="rounded border px-4 py-2">Sign out</button>
-        </form>
-      </div>
+      <h1 className="text-2xl font-semibold">Dashboard</h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Inventory items" value={invTotal} sublabel="Total tracked" />

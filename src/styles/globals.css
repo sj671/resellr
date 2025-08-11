@@ -74,6 +74,14 @@ body {
   color: hsl(var(--foreground));
 }
 
+/* Dark mode background: subtle glassy-black gradient */
+.dark body {
+  background: 
+    radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,0.06), transparent),
+    radial-gradient(900px 500px at 90% 0%, rgba(99,102,241,0.08), transparent),
+    linear-gradient(180deg, #0b0f14 0%, #0a0c10 100%);
+}
+
 * {
   @apply border-border;
 }
@@ -90,6 +98,32 @@ input::placeholder,
 textarea::placeholder {
   color: hsl(var(--muted-foreground));
   opacity: 1;
+}
+
+/* Improve date/time input icon visibility in dark mode */
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2);
+}
+
+/* Firefox date picker icon */
+.dark input[type="date"]::-moz-focus-inner {
+  filter: invert(1) brightness(1.2);
+}
+
+/* Edge/Chromium pickers */
+.dark input[type="date"]::-ms-clear,
+.dark input[type="date"]::-ms-reveal {
+  filter: invert(1) brightness(1.2);
+}
+
+/* Glass panel utility for dark mode */
+.dark .glass-panel {
+  background-color: rgba(15, 18, 24, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 

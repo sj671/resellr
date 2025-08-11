@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseRSCClient } from "@/lib/supabase/server";
 import InventoryActions from "./_components/InventoryActions";
 import DataTable, { type Column } from "@/components/ui/data-table";
@@ -13,13 +14,7 @@ export default async function InventoryPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user)
-    return (
-      <div>
-        <p className="mb-4">Please sign in to view your inventory.</p>
-        <Link href="/login" className="underline">Log in</Link>
-      </div>
-    );
+  if (!user) redirect("/login?next=/inventory");
 
   const sp = await searchParams;
   const query = (typeof sp.q === "string" ? sp.q : "").trim();

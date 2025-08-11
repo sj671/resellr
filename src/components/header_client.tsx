@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Avatar({ name, src }: { name?: string | null; src?: string | null }) {
   const label = (name ?? "").trim() || "?";
@@ -25,6 +25,11 @@ function Avatar({ name, src }: { name?: string | null; src?: string | null }) {
 
 export function NavToggle() {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const html = document.documentElement;
+    html.style.overflow = open ? "hidden" : "";
+    return () => { html.style.overflow = ""; };
+  }, [open]);
   return (
     <button
       className="md:hidden p-2 border rounded"
@@ -38,7 +43,39 @@ export function NavToggle() {
 }
 
 export function MobileNav() {
-  return null; // Placeholder for future mobile sheet nav
+  const [open, setOpen] = useState(false);
+  // tie to NavToggle via attribute (simple shared state alternative is possible)
+  useEffect(() => {
+    const btn = document.querySelector('[data-open]');
+    function onClick() {
+      const val = btn?.getAttribute('data-open') === 'true';
+      setOpen(val);
+    }
+    btn?.addEventListener('click', onClick);
+    return () => btn?.removeEventListener('click', onClick);
+  }, []);
+
+  if (!open) return null;
+  return (
+    <div className="md:hidden fixed inset-0 z-40 bg-background/90 backdrop-blur-sm">
+      <div className="absolute right-3 top-16 w-64 rounded-md border bg-popover text-popover-foreground shadow p-2">
+        <nav className="grid">
+          <MenuLink href="/research" label="Research" />
+          <MenuLink href="/coming-soon" label="Coming Soon" />
+          <MenuLink href="/profile" label="Profile" />
+          <MenuLink href="/settings" label="Settings" />
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+function MenuLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a href={href} className="px-3 py-2 rounded hover:bg-muted">
+      {label}
+    </a>
+  );
 }
 
 export function UserMenu({
@@ -72,13 +109,13 @@ export function UserMenu({
   return (
     <div className="relative">
       <button
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
       >
         <Avatar name={displayName ?? email ?? undefined} src={avatarUrl ?? undefined} />
-        <span className="hidden sm:inline text-sm">{label}</span>
+        <span className="hidden md:inline text-sm truncate max-w-[8rem]">{label}</span>
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-48 rounded-md border bg-popover text-popover-foreground shadow">

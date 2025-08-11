@@ -1,33 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const enabled = stored ? stored === "dark" : prefersDark;
-    document.documentElement.classList.toggle("dark", enabled);
-    setIsDark(enabled);
-  }, []);
-
-  function toggle() {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
-
+  // Dark-only mode for now; show a static icon for spacing consistency
   return (
-    <button
-      onClick={toggle}
-      className="px-3 py-1 rounded border text-sm"
-      aria-label="Toggle dark mode"
-      title="Toggle theme"
-    >
-      {isDark ? "Light" : "Dark"}
-    </button>
+    <span className="inline-flex h-9 w-9 items-center justify-center rounded-md border opacity-60">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+      </svg>
+    </span>
   );
 }
 

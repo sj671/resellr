@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseRSCClient } from "@/lib/supabase/server";
 import DataTable, { type Column } from "@/components/ui/data-table";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -19,6 +20,10 @@ export default async function ExpensesPage({
   const to = from + pageSize - 1;
 
   const supabase = await createSupabaseRSCClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/expenses");
   let builder = supabase
     .from("expenses")
     .select("id,occurred_at,category,amount,note,created_at", { count: "exact" })

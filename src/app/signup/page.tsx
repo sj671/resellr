@@ -39,6 +39,15 @@ export default function SignupPage() {
       await supabase
         .from("profiles")
         .upsert({ id: data.user.id, email: data.user.email ?? null }, { onConflict: "id" });
+      // Propagate session to SSR by calling server route
+      await fetch("/auth/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        }),
+      });
     }
     router.replace("/dashboard");
   }

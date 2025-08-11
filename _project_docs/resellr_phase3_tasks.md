@@ -14,15 +14,16 @@
 
 ## 2. Milestones & Tasks
 
-### M1 — OAuth & Connection
+### M1 — OAuth & Connection (implemented)
 - App config
-  - Env vars: `EBAY_ENV` ("production"|"sandbox"), `EBAY_APP_ID`, `EBAY_CERT_ID`, `EBAY_REDIRECT_URI`, `EBAY_SCOPE` (space‑delimited minimal scopes), `EBAY_BASE_URL`.
+  - Env vars: `EBAY_ENV` ("production"|"sandbox"), `EBAY_APP_ID`, `EBAY_CERT_ID`, `EBAY_RU_NAME` (Redirect URL name), `EBAY_SCOPE` (space‑delimited minimal scopes), `EBAY_BASE_URL` (derived), `EBAY_MARKETPLACE_ID` (default `EBAY_US`).
 - DB: `public.ebay_connections`
   - Columns: `owner_id uuid PK (FK profiles)`, `ebay_user_id text`, `refresh_token_enc text`, `access_token text`, `access_token_expires_at timestamptz`, `scopes text[]`, `status text check in ('connected','revoked','error') default 'connected'`, `failure_count int default 0`, `last_error text`, `created_at`, `updated_at`.
   - RLS: owner‑only read/write. Default deny.
 - UI: Settings → eBay card
-  - Connect button → begins OAuth, redirect to `auth/callback/ebay`.
-  - Show connection status, last sync, error if any. Provide "Revoke".
+  - Connect button → begins OAuth via `/api/ebay/auth/start`, redirects to eBay authorize URL.
+  - After callback (`/auth/callback/ebay`), redirect to `/settings?ebay=connected` or show error via `?ebay_error=`.
+  - Show connection status, "Sync now" button (calls `/api/ebay/sync-now`).
 - Server actions / routes
   - Exchange `code` for tokens; store `refresh_token_enc` using server‑side encryption (e.g., Supabase `pgp_sym_encrypt` or KMS if available), compute `access_token_expires_at`.
   - Token refresh helper invoked when < 5 minutes to expiry.
@@ -61,7 +62,9 @@
   - Use `cursor` or `modifiedSince` if provided by eBay; otherwise, maintain `last_synced_at` and windowing.
   - Handle pagination; respect `Retry‑After` and backoff on 429.
   - On 401, refresh token and retry once; on failure, increment `failure_count` and store `last_error`.
-- On‑demand sync endpoint for user‑triggered "Sync now" in UI (debounced, server‑only).
+- On‑demand sync endpoint implemented: `/api/ebay/sync-now`.
+  - Uses `filter=creationdate:[<ISO>..]` and `X-EBAY-C-MARKETPLACE-ID` header.
+  - Maps orders to `sales` via idempotent upsert; updates `sync_state`.
 
 ### M4 — UI Surfacing
 - Settings
@@ -80,12 +83,10 @@
 
 #### EBAY_ENV & OAuth Connectivity Tests
 - Environment validation
-  - Ensure the following env vars are present at runtime: `EBAY_ENV` ("sandbox"|"production"), `EBAY_APP_ID`, `EBAY_CERT_ID`, `EBAY_REDIRECT_URI`, `EBAY_SCOPE` (space‑delimited), and either `EBAY_AUTH_BASE_URL` or infer from `EBAY_ENV`.
+  - Ensure: `EBAY_ENV`, `EBAY_APP_ID`, `EBAY_CERT_ID`, `EBAY_RU_NAME`, `EBAY_SCOPE` and base URL derived from env.
   - Add a runnable script: `scripts/phase3_env_test.mjs` that validates presence/format and exits non‑zero on failure.
 - OAuth URL construction
-  - The script must build the correct eBay authorize URL using:
-    - Base: `https://auth.sandbox.ebay.com/oauth2/authorize` when `EBAY_ENV=sandbox`, else `https://auth.ebay.com/oauth2/authorize` (overridable by `EBAY_AUTH_BASE_URL`).
-    - Query: `response_type=code`, `client_id=<EBAY_APP_ID>`, `redirect_uri=<EBAY_RU_NAME>`, `scope=<EBAY_SCOPE>`, `state=<random>`.
+  - Built authorize URL uses RuName for `redirect_uri` (not raw URL).
   - Note: eBay expects `redirect_uri` to be the Redirect URL name (RuName) configured in your developer app, not the raw HTTPS URL. Update the underlying Redirect URL for that RuName in the eBay app settings to point to your tunnel or production domain.
   - Output the URL for manual copy/paste to validate the app registration.
 - Token exchange flow (mock)
@@ -109,7 +110,32 @@
   - Install: `brew install cloudflared` or follow Cloudflare docs.
   - Start tunnel: `cloudflared tunnel --url http://localhost:3000`
   - Copy the printed `https://<random>.trycloudflare.com` URL.
-  - Set `EBAY_REDIRECT_URI` to `https://<random>.trycloudflare.com/ebay/callback` and add the exact same URL in your eBay (sandbox) app settings.
+- Set your eBay app Redirect URL (for the RuName) to `https://<random>.trycloudflare.com/auth/callback/ebay`. In env, set `EBAY_RU_NAME` to the app’s Redirect URL name.
+
+---
+
+## 10. Research (eBay Browse) — Implemented
+- Text search endpoint: `src/app/api/research/ebay/search/route.ts` proxies `q` or `imageUrl` to `buy/browse/v1/item_summary/search` using application access token.
+- Image search endpoint: `src/app/api/research/ebay/search-by-image/route.ts` accepts multipart upload and forwards base64 JSON body to `search_by_image`.
+- App token helper: `src/lib/ebay/appToken.ts` caches client‑credentials token (`EBAY_APP_ID`/`EBAY_CERT_ID`), defaults `EBAY_BUY_SCOPE` to `https://api.ebay.com/oauth/api_scope`.
+- AI summarization: `src/app/api/ai/summarize-titles/route.ts` calls OpenAI (model `gpt-4o-mini` by default) to produce a concise query and notes.
+- UI: `src/app/research/page.tsx` implements keyword/image search, KPIs, AI generation, Save modal, quick-fill from AI to title.
+- Saved searches
+  - DB migrations: `00000000000004_phase3_saved_searches.sql`, `00000000000005_add_title_to_saved_searches.sql`, `00000000000006_saved_searches_unique_title.sql`, `00000000000007_saved_searches_delete_policy.sql`, `00000000000008_saved_searches_image_path.sql`.
+  - Storage bucket: `00000000000009_storage_research_public.sql` creates `research-public` with public read and per‑user write policies.
+  - APIs: save (`src/app/api/research/save/route.ts`), delete (`src/app/api/research/saved/[id]/delete/route.ts`), update per‑item AI (`src/app/api/research/saved/[id]/update-ai/route.ts`).
+  - Pages: list (`src/app/research/saved/page.tsx`), detail (`src/app/research/saved/[id]/page.tsx`) and client (`SavedResultsClient.tsx`).
+
+### Env
+- `EBAY_MARKETPLACE_ID` (default `EBAY_US`)
+- `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_BASE_URL`
+- `SUPABASE_STORAGE_BUCKET=research-public`, `SUPABASE_STORAGE_PUBLIC=true`
+- `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (server only) for image delete path
+
+### RLS Notes
+- `saved_searches`: select/insert/update/delete where `user_id = auth.uid()`.
+- Storage (`research-public`):
+  - public read; authenticated users can write/delete only under `{auth.uid()}/...` path.
 - Option B: ngrok
   - `ngrok http 3000` → use the printed `https://<random>.ngrok.io` as above.
 - Note

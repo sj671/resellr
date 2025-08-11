@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getEbayApiBase(): string {
@@ -13,7 +14,52 @@ function getTokenUrl(): string {
     : "https://api.sandbox.ebay.com/identity/v1/oauth2/token";
 }
 
-async function refreshAccessTokenIfNeeded(supabase: any, userId: string, connection: any) {
+type EbayConnectionRow = {
+  access_token: string | null;
+  access_token_expires_at: string | null;
+  refresh_token_enc: string | null;
+};
+
+type EbayMoney = { value?: string | number };
+type EbayPricingSummary = {
+  total?: EbayMoney;
+  deliveryCost?: EbayMoney;
+  totalTax?: EbayMoney;
+  totalMarketplaceFee?: EbayMoney;
+  paymentDiscount?: EbayMoney;
+};
+type EbayLineItem = { quantity?: number };
+type EbayOrder = {
+  orderId?: string;
+  creationDate?: string;
+  lineItems?: EbayLineItem[];
+  pricingSummary?: EbayPricingSummary;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isEbayOrder(value: unknown): value is EbayOrder {
+  if (!isObject(value)) return false;
+  // Basic shape checks
+  if ("orderId" in value && typeof (value as { orderId?: unknown }).orderId !== "string" && typeof (value as { orderId?: unknown }).orderId !== "undefined") {
+    return false;
+  }
+  if ("creationDate" in value && typeof (value as { creationDate?: unknown }).creationDate !== "string" && typeof (value as { creationDate?: unknown }).creationDate !== "undefined") {
+    return false;
+  }
+  if ("lineItems" in value && !Array.isArray((value as { lineItems?: unknown }).lineItems) && typeof (value as { lineItems?: unknown }).lineItems !== "undefined") {
+    return false;
+  }
+  return true;
+}
+
+async function refreshAccessTokenIfNeeded(
+  supabase: SupabaseClient,
+  userId: string,
+  connection: EbayConnectionRow,
+) {
   const now = Date.now();
   const expiresAt = connection.access_token_expires_at ? new Date(connection.access_token_expires_at).getTime() : 0;
   const needsRefresh = !connection.access_token || expiresAt - now < 5 * 60 * 1000; // <5m
@@ -21,7 +67,7 @@ async function refreshAccessTokenIfNeeded(supabase: any, userId: string, connect
 
   const clientId = process.env.EBAY_APP_ID!;
   const clientSecret = process.env.EBAY_CERT_ID!;
-  const refreshToken = connection.refresh_token_enc as string | null;
+  const refreshToken = connection.refresh_token_enc;
   if (!refreshToken) throw new Error("missing_refresh_token");
 
   const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
@@ -98,30 +144,33 @@ export async function POST() {
         : undefined;
       return NextResponse.json({ error: "orders_fetch_failed", status: resp.status, detail: text.slice(0, 300), hint }, { status: 502 });
     }
-    const json = await resp.json();
+    const json: unknown = await resp.json();
 
-    // Map orders → sales (idempotent)
-    const orders: any[] = Array.isArray(json?.orders) ? json.orders : [];
+    // Map orders → sales (idempotent) with safe narrowing
+    const ordersUnknown = isObject(json) && Array.isArray((json as { orders?: unknown }).orders)
+      ? ((json as { orders?: unknown }).orders as unknown[])
+      : [];
+    const orders: EbayOrder[] = ordersUnknown.filter(isEbayOrder);
     const salesRows = orders.map((order) => {
-      const orderId = order.orderId as string | undefined;
-      const lineItems = Array.isArray(order?.lineItems) ? order.lineItems : [];
-      const subtotal = Number(order?.pricingSummary?.total?.value ?? 0);
-      const shippingIn = Number(order?.pricingSummary?.deliveryCost?.value ?? 0);
-      const tax = Number(order?.pricingSummary?.totalTax?.value ?? 0);
-      const createdAt = order?.creationDate ? new Date(order.creationDate).toISOString() : new Date().toISOString();
+      const orderId = typeof order.orderId === "string" ? order.orderId : undefined;
+      const lineItems: EbayLineItem[] = Array.isArray(order.lineItems) ? order.lineItems : [];
+      const subtotal = Number(order.pricingSummary?.total?.value ?? 0);
+      const shippingIn = Number(order.pricingSummary?.deliveryCost?.value ?? 0);
+      const tax = Number(order.pricingSummary?.totalTax?.value ?? 0);
+      const createdAt = order.creationDate ? new Date(order.creationDate).toISOString() : new Date().toISOString();
       return {
         user_id: user.id,
         marketplace: "ebay",
         marketplace_sale_id: orderId ?? null,
         sale_date: createdAt,
-        quantity: lineItems.reduce((acc: number, li: any) => acc + Number(li?.quantity ?? 0), 0) || 1,
+        quantity: lineItems.reduce((acc: number, li: EbayLineItem) => acc + Number(li?.quantity ?? 0), 0) || 1,
         gross_amount: subtotal,
-        fees: Number(order?.pricingSummary?.totalMarketplaceFee?.value ?? 0) + Number(order?.pricingSummary?.paymentDiscount?.value ?? 0),
+        fees: Number(order.pricingSummary?.totalMarketplaceFee?.value ?? 0) + Number(order.pricingSummary?.paymentDiscount?.value ?? 0),
         shipping_income: shippingIn,
         shipping_cost: 0, // unknown; left for user to edit later
         tax,
         note: null,
-        external_json: order,
+        external_json: order as unknown as Record<string, unknown>,
       };
     });
 
@@ -144,8 +193,9 @@ export async function POST() {
 
     const count = orders.length;
     return NextResponse.json({ ok: true, resource: "orders", count });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

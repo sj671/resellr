@@ -34,6 +34,18 @@ export default function LoginPage() {
         .from("profiles")
         .upsert({ id: user.id, email: user.email ?? null }, { onConflict: "id" });
     }
+    // Ensure the SSR session cookies are set by calling a server route to setSession
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session) {
+      await fetch("/auth/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: sessionData.session.access_token,
+          refresh_token: sessionData.session.refresh_token,
+        }),
+      });
+    }
     router.replace("/dashboard");
   }
 

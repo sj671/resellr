@@ -130,15 +130,9 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(new URL(`/settings?ebay=connected`, url.origin));
-  } catch (err: any) {
-    return NextResponse.redirect(
-      new URL(
-        `/settings?ebay_error=${encodeURIComponent(
-          err?.message || "unknown_error"
-        )}`,
-        url.origin
-      )
-    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.redirect(new URL(`/settings?ebay_error=${encodeURIComponent(message)}`, url.origin));
   }
 }
 

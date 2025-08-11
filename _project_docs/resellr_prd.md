@@ -22,15 +22,14 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
 ---
 
 ## 2. Phasing
-### Phase 0 — Environment & PWA Shell (this document’s scope)
+### Phase 0 — Environment & App Shell (this document’s scope)
 - Next.js 15+ (App Router, TS), Tailwind, shadcn/ui
 - Supabase wiring (Data API), SQL migrations via Supabase CLI
 - RLS‑ready DB with `profiles` table
-- PWA manifest, service worker (next-pwa)
 - Minimal pages and layout, dark/light theme, header/footer
 
 **Success Criteria**
-- Installable app (`pnpm build && pnpm start`) with manifest+SW.
+- Production build succeeds (`pnpm build && pnpm start`).
 - Supabase local environment runs with initial migration and generated TS types.
 - No TypeScript errors; mobile‑first responsive layout.
 
@@ -48,7 +47,11 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
 - OAuth connection, background pulls for Orders & active Listings
 - Mapping to local tables; idempotent upserts
 - Manual sale entry for non‑eBay marketplaces
- - See `_project_docs/resellr_phase3_tasks.md` for detailed tasks and acceptance criteria.
+- Status: in progress. Implemented endpoints for OAuth start/callback, on‑demand Orders sync, and app‑token flow for eBay Research (Browse API).
+  - Auth start: `src/app/api/ebay/auth/start/route.ts` (builds authorize URL using `EBAY_RU_NAME`, sets CSRF state cookie, requires user session)
+  - Callback: `src/app/auth/callback/ebay/route.ts` (validates state, exchanges code for tokens, upserts into `public.ebay_connections`)
+  - Sync now: `src/app/api/ebay/sync-now/route.ts` (refreshes token if needed; fetches recent orders; idempotent upsert into `sales`; updates `sync_state`)
+  - See `_project_docs/resellr_phase3_tasks.md` for detailed tasks and acceptance criteria.
 
 ### Phase 4 — Insights & Exports
 - KPIs (Revenue, Fees, COGS, Net, ROI, Sell‑Through)
@@ -72,8 +75,8 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
    - Footer with placeholder Privacy/Terms.
 2. **Landing Page**
    - Hero section, CTAs, 3 informational cards.
-3. **PWA**
-   - `manifest.webmanifest` with icons; `next-pwa` registered on prod build.
+3. **PWA (Deferred)**
+   - Deferred for now to reduce complexity. Re‑enable later when we want installability/offline. Manifest may remain for icons/metadata.
 4. **Supabase Wiring**
    - `client.ts` and `server.ts` helpers.
    - SQL migration: `public.profiles` with RLS (read/update/insert self).
@@ -111,7 +114,7 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
 ## 6. Architecture
 **Frontend:** Next.js 15 (App Router, Server Components, Server Actions), Tailwind, shadcn/ui.  
 **Backend:** Supabase (Auth, PostgREST, RPC, RLS).  
-**Storage:** Supabase Storage (Phase 2+ for photos/receipts).  
+**Storage:** Supabase Storage (Phase 2+ for photos/receipts, and Phase 3 research uploads).  
 **Jobs/Sync:** Supabase Scheduled Functions or external worker (Phase 3).
 
 **Data Access Pattern**
@@ -128,12 +131,33 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
 
 (Phase 2 will add: `inventory_items`, `listings`, `sales`, `expenses` with owner scoping.)
 
+### Phase 3 additions
+- `public.saved_searches`
+  - Columns: `id uuid PK`, `user_id uuid FK auth.users`, `title text`, `query text`, `ai_query text`, `results_json jsonb`, `reference_image_url text`, `reference_image_path text`, `created_at/updated_at timestamptz`
+  - RLS: select/insert/update/delete where `user_id = auth.uid()`
+- Storage: bucket `research-public` (public)
+  - Policies: public read; authenticated users can insert/update/delete only within their own `{user_id}/...` path
+  - Reference images for saved searches are written to `${user_id}/${timestamp}.jpg`, public URL stored in `reference_image_url`
+
 ---
 
 ## 8. UI / UX
 - Visual Language: clean, spacious, subtle elevation, rounded radius (`--radius: 0.75rem`), prefers-dark compatible.
 - Components: shadcn base set (Button, Card, Input, Table, Dialog, DropdownMenu, Form, Toast, Sheet, Badge, Tooltip, Tabs, Textarea, Select, Avatar, Progress).
 - Navigation: top nav with responsive Sheet; clear empty states and placeholders (“Coming soon”).
+
+### Research feature (Phase 3)
+- Page: `src/app/research/page.tsx`
+  - Keyword search and image URL upload for eBay Browse text search
+  - Image file upload (camera/library) posts to `api/research/ebay/search-by-image`
+  - AI summarization of current results via `api/ai/summarize-titles` to generate a concise query for eBay Completed search
+  - KPI summary bar (Avg price, Suggested offer range, Items found)
+  - Save Search modal: saves `title`, `query`, `ai_query`, results, per-item AI into `saved_searches` with optional reference photo upload
+  - Quick-fill button to copy AI query into the Title field
+- Saved Searches
+  - List: `src/app/research/saved/page.tsx` with thumbnails, stats, quick links
+  - Detail: `src/app/research/saved/[id]/page.tsx` with client-side sort/filter and per-item AI query generation (`SavedResultsClient`)
+  - Delete: `src/app/api/research/saved/[id]/delete/route.ts` deletes row and best-effort removes image from Storage
 
 ---
 
@@ -145,6 +169,7 @@ Resellr is a modern PWA for resellers to track inventory, sales, expenses, and p
 
 ## 10. Rollout & Environments
 - **Local:** `supabase start`, `pnpm dev`.
+- OAuth local callback requires HTTPS tunnel (Cloudflared/ngrok). Configure eBay app Redirect URL to the tunnel domain; use RuName (`EBAY_RU_NAME`) in authorize URL.
 - **Staging:** Vercel preview + Supabase project (locked with service role only for server routes). 
 - **Production:** Vercel + Supabase; rotate keys; strict CORS; domain with HTTPS. 
 - **Feature flags:** config‑driven; hide unfinished routes from nav.
@@ -180,6 +205,10 @@ pnpm run db:types
 pnpm dev
 # PWA test
 pnpm build && pnpm start
+
+# eBay Phase 3 helpers
+node scripts/phase3_env_test.mjs --print-url # validate env and print authorize URL
+node scripts/phase3_env_test.mjs --self-test  # run internal assertions
 ```
 
 ### B. Future Tables (Preview)

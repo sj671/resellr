@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getAuthBase(): string {
   if (process.env.EBAY_AUTH_BASE_URL) return process.env.EBAY_AUTH_BASE_URL;
@@ -17,7 +18,19 @@ function buildAuthorizeUrl(params: Record<string, string>): string {
   return url.toString();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Require app login first so we can associate the connection to the user
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    // Build redirect URL using the incoming request URL to preserve host (Vercel, tunnels, etc.)
+    const loginUrl = new URL(request.url);
+    loginUrl.pathname = "/login";
+    loginUrl.search = `next=${encodeURIComponent("/settings")}`;
+    return NextResponse.redirect(loginUrl);
+  }
   const clientId = process.env.EBAY_APP_ID;
   const ruName = process.env.EBAY_RU_NAME; // Redirect URL name (RuName)
   const scope = process.env.EBAY_SCOPE || "https://api.ebay.com/oauth/api_scope";
