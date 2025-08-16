@@ -39,6 +39,22 @@ export function middleware(req: NextRequest) {
     return res;
   }
 
+  // Handle authentication protection for protected routes
+  const { pathname } = req.nextUrl;
+  const protectedRoutes = ['/research', '/settings', '/dashboard', '/profile'];
+  
+  if (protectedRoutes.some(route => pathname.startsWith(route))) {
+    // Check for authentication cookie/token
+    const authCookie = req.cookies.get('sb-access-token') || req.cookies.get('sb-refresh-token');
+    
+    if (!authCookie) {
+      // Redirect to login with the intended destination
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   const res = NextResponse.next();
   if (allowOrigin) {
     res.headers.set("Access-Control-Allow-Origin", allowOrigin);
@@ -47,9 +63,19 @@ export function middleware(req: NextRequest) {
   return res;
 }
 
-// Apply CORS only to API routes by default
+// Apply middleware to API routes and protected pages
 export const config = {
-  matcher: "/api/:path*",
+  matcher: [
+    "/api/:path*",
+    "/research/:path*",
+    "/settings/:path*", 
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/research",
+    "/settings",
+    "/dashboard", 
+    "/profile"
+  ],
 };
 
 

@@ -44,9 +44,7 @@ export default async function ProfilePage() {
           <Field label="Account Created" value={createdAt ? formatDate(createdAt.toISOString()) : "—"} />
         </div>
 
-        <form action="/auth/signout" method="post" className="mt-6">
-          <button className="w-full rounded-md px-4 py-3 bg-red-600 text-white hover:opacity-90">Sign Out</button>
-        </form>
+
       </div>
     </div>
   );

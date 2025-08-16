@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const [authChecking, setAuthChecking] = useState(true);
+  
   const { error, connected } = useMemo(() => {
     const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
     return {
@@ -10,6 +14,41 @@ export default function SettingsPage() {
       connected: params.get("ebay"),
     };
   }, []);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/me');
+        const data = await response.json();
+        
+        if (!data.user) {
+          // User not authenticated, redirect to login
+          router.push('/login?next=/settings');
+          return;
+        }
+        
+        setAuthChecking(false);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        router.push('/login?next=/settings');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Show loading while checking authentication
+  if (authChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

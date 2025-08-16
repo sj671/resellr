@@ -19,5 +19,3 @@ begin new.updated_at = now(); return new; end; $$ language plpgsql;
 drop trigger if exists trg_profiles_touch on public.profiles;
 create trigger trg_profiles_touch before update on public.profiles
 for each row execute procedure public.touch_updated_at();
-
-

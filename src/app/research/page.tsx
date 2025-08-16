@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type ItemSummary = {
   itemId: string;
@@ -12,6 +13,7 @@ type ItemSummary = {
 };
 
 export default function ResearchPage() {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,8 +21,44 @@ export default function ResearchPage() {
   const [uploadedPreview, setUploadedPreview] = useState<string>("");
   const [searchMethod, setSearchMethod] = useState<"text" | "image">("text");
   const [resultLimit, setResultLimit] = useState(50);
+  const [authChecking, setAuthChecking] = useState(true);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const libraryInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/me');
+        const data = await response.json();
+        
+        if (!data.user) {
+          // User not authenticated, redirect to login
+          router.push('/login?next=/research');
+          return;
+        }
+        
+        setAuthChecking(false);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        router.push('/login?next=/research');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Show loading while checking authentication
+  if (authChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   async function runSearch() {
     if (!q.trim() && !imageUrl.trim()) return;

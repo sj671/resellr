@@ -11,6 +11,15 @@ type ItemSummary = {
   itemWebUrl?: string;
 };
 
+// Helper function to format price with currency
+function formatPrice(value: string, currency?: string): string {
+  if (!value) return '';
+  if (currency === 'USD') {
+    return `$${value}`;
+  }
+  return `${value} ${currency}`;
+}
+
 export default function SearchResultsPage() {
   const [results, setResults] = useState<ItemSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,15 +226,15 @@ export default function SearchResultsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSaveOpen(true)}
-            className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors"
-          >
-            Save Search
-          </button>
-          <Link href="/research" className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors">
-            New Search
-          </Link>
+                           <button
+                   onClick={() => setSaveOpen(true)}
+                   className="rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors"
+                 >
+                   Save Search
+                 </button>
+                 <Link href="/research" className="rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors">
+                   New Search
+                 </Link>
         </div>
       </div>
 
@@ -235,12 +244,12 @@ export default function SearchResultsPage() {
           <div className="text-sm text-muted-foreground">
             Showing {results.length} items
           </div>
-          <Link 
-            href="/research" 
-            className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
-          >
-            ← Back to Search
-          </Link>
+                           <Link
+                   href="/research"
+                   className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                 >
+                   ← Back to Search
+                 </Link>
         </div>
       </div>
 
@@ -258,12 +267,12 @@ export default function SearchResultsPage() {
                 {searchQuery || 'Image Search'}
               </h3>
             </div>
-            <Link 
-              href="/research" 
-              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
-            >
-              Modify Search
-            </Link>
+                               <Link
+                     href="/research"
+                     className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                   >
+                     Modify Search
+                   </Link>
           </div>
         </div>
       )}
@@ -288,15 +297,15 @@ export default function SearchResultsPage() {
             <h3 className="text-lg font-semibold">AI Query for Completed Items</h3>
             <p className="text-sm text-muted-foreground">Generate a search query for completed eBay listings</p>
           </div>
-          <button
-            onClick={generateAIQuery}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Generate Query
-          </button>
+                           <button
+                   onClick={generateAIQuery}
+                   className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 text-white p-2.5 transition-colors"
+                   title="Generate AI Query for Completed Items"
+                 >
+                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-2.848-2.848L2.25 12l2.846-.813a4.5 4.5 0 002.848-2.848L9 5.25l.813 2.846a4.5 4.5 0 002.848 2.848L15.75 12l-2.846.813a4.5 4.5 0 00-2.848 2.848zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                   </svg>
+                 </button>
         </div>
 
         {aiQuery && (
@@ -307,26 +316,26 @@ export default function SearchResultsPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              <a
-                href={`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(aiQuery)}&_sacat=0&_from=R40&rt=nc&LH_Complete=1`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                View Completed on eBay
-              </a>
-              <button
-                onClick={() => { setSaveAiQuery(aiQuery); setSaveOpen(true); }}
-                className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-                Save with AI Query
-              </button>
+                                   <a
+                       href={`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(aiQuery)}&_sacat=0&_from=R40&rt=nc&LH_Complete=1`}
+                       target="_blank"
+                       rel="noreferrer"
+                       className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs hover:bg-accent transition-colors"
+                     >
+                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                       </svg>
+                       eBay
+                     </a>
+                     <button
+                       onClick={() => { setSaveAiQuery(aiQuery); setSaveOpen(true); }}
+                       className="inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs hover:bg-accent transition-colors"
+                     >
+                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                       </svg>
+                       Save with AI Query
+                     </button>
             </div>
 
             {aiNotes && (
@@ -373,24 +382,24 @@ export default function SearchResultsPage() {
                     <div className="flex items-center gap-4">
                       {it.price?.value && (
                         <div className="text-xl font-semibold text-emerald-600 dark:text-emerald-400">
-                          {it.price.value} <span className="text-sm text-muted-foreground">{it.price.currency}</span>
+                          {formatPrice(it.price.value, it.price.currency)}
                         </div>
                       )}
                     </div>
                     
-                    {it.itemWebUrl && (
-                      <a
-                        href={it.itemWebUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M19 7h-3V6c0-1.7-1.3-3-3-3h-2C9.3 3 8 4.3 8 6v1H5c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 6c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v1h-4V6z"/>
-                        </svg>
-                        View on eBay
-                      </a>
-                    )}
+                                               {it.itemWebUrl && (
+                             <a
+                               href={it.itemWebUrl}
+                               target="_blank"
+                               rel="noreferrer"
+                               className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs hover:bg-accent transition-colors"
+                             >
+                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                               </svg>
+                               eBay
+                             </a>
+                           )}
                   </div>
                 </div>
               </div>
@@ -417,18 +426,18 @@ export default function SearchResultsPage() {
                     placeholder="e.g., He-Man lot Aug 2025"
                     className="flex-1 rounded-lg border px-3 py-2 mt-1"
                   />
-                  {aiQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSaveTitle(aiQuery)}
-                      className="mt-1 px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors"
-                      title="Use AI query as title"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </button>
-                  )}
+                                           {aiQuery && (
+                           <button
+                             type="button"
+                             onClick={() => setSaveTitle(aiQuery)}
+                             className="mt-1 px-2.5 py-1.5 text-xs bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors"
+                             title="Use AI query as title"
+                           >
+                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                             </svg>
+                           </button>
+                         )}
                 </div>
               </div>
               
@@ -447,21 +456,21 @@ export default function SearchResultsPage() {
               <div className="mt-2 text-xs text-red-500">Title is required</div>
             )}
 
-            <div className="mt-6 flex items-center justify-end gap-3">
-              <button 
-                className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors" 
-                onClick={() => setSaveOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm transition-colors disabled:opacity-50"
-                onClick={saveSearch}
-                disabled={!saveTitle.trim()}
-              >
-                Save
-              </button>
-            </div>
+                               <div className="mt-6 flex items-center justify-end gap-3">
+                     <button
+                       className="rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors"
+                       onClick={() => setSaveOpen(false)}
+                     >
+                       Cancel
+                     </button>
+                     <button
+                       className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm transition-colors disabled:opacity-50"
+                       onClick={saveSearch}
+                       disabled={!saveTitle.trim()}
+                     >
+                       Save
+                     </button>
+                   </div>
           </div>
         </div>
       )}
@@ -496,7 +505,7 @@ function SummaryBar({ items }: { items: ItemSummary[] }) {
       <div className="rounded-xl border p-6 bg-card">
         <div className="text-sm text-muted-foreground mb-2">Average Price</div>
         <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-          {avg !== null ? `${avg.toFixed(2)} ${currency ?? ''}` : 'n/a'}
+          {avg !== null ? formatPrice(avg.toFixed(2), currency) : 'n/a'}
         </div>
       </div>
       <div className="rounded-xl border p-6 bg-card">
@@ -504,10 +513,9 @@ function SummaryBar({ items }: { items: ItemSummary[] }) {
         <div className="text-3xl font-bold">
           {low !== null && high !== null ? (
             <span>
-              <span className="text-emerald-500">{low.toFixed(2)}</span>
+              <span className="text-emerald-500">{formatPrice(low.toFixed(2), currency)}</span>
               <span className="mx-2 text-muted-foreground">-</span>
-              <span className="text-emerald-500">{high.toFixed(2)}</span>
-              <span className="ml-2 text-sm text-muted-foreground">{currency ?? ''}</span>
+              <span className="text-emerald-500">{formatPrice(high.toFixed(2), currency)}</span>
             </span>
           ) : (
             'n/a'
