@@ -1,4 +1,4 @@
-Resellr — Architecture (Phase 0–2)
+Snapflip — Architecture (Phase 0–2)
 
 This document describes the current architecture after Phases 0–2, along with key data flows and security boundaries.
 

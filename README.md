@@ -1,4 +1,4 @@
-Resellr — App (Phases 0–2)
+Snapflip — App (Phases 0–2)
 
 Modern reseller PWA scaffold built with Next.js + Supabase. Phase 0–2 provide the shell, auth baseline, and data foundation with CRUD screens.
 

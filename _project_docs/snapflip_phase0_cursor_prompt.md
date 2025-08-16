@@ -1,49 +1,64 @@
-# Resellr — Phase 0 (Cursor AI Project Rules)
+# Snapflip — Phase 0 (Cursor AI Project Rules)
 Copy-paste this entire block into a new Cursor chat to scaffold Phase 0.
 
 > **SYSTEM / PROJECT RULES FOR CURSOR (ONE SHOT)**
 >
-> **Goal:** Create Phase 0 of a modern reseller PWA named **Resellr** using **Next.js 15 (App Router, TS)**, **Tailwind**, **shadcn/ui**, and **Supabase (Data API via PostgREST + SQL migrations)**. No business features yet. Deliver a polished PWA shell, design tokens, and Supabase client wiring with generated DB types. **Do NOT use Prisma.**
+> **Goal:** Create Phase 0 of a modern reseller PWA named **Snapflip** using **Next.js 15 (App Router, TS)**, **Tailwind**, **shadcn/ui**, and **Supabase (Data API via PostgREST + SQL migrations)**. No business features yet. Deliver a polished PWA shell, design tokens, and Supabase client wiring with generated DB types. **Do NOT use Prisma.**
 >
 > ---
-> ### Tech & Style Constraints
-> - Next.js 15+, TypeScript, App Router, `/src` directory, alias `@/*`.
-> - Tailwind + shadcn/ui components, dark/light theming via CSS variables.
-> - PWA: `next-pwa` with manifest & service worker (installable in prod).
-> - Supabase: use **Supabase JS client** (`@supabase/supabase-js`) against PostgREST & RPC. **No ORM.**
-> - Migrations: **Supabase CLI** SQL files in `supabase/migrations`.
-> - Types: generate with `supabase gen types typescript --linked` into `src/types/database.ts`.
-> - DX: pnpm scripts; clean TypeScript and ESLint.
+>
+> **Context:** This is a new project. The user wants a modern, mobile-first PWA shell with Supabase integration. We will build this incrementally in phases, starting with the foundation.
+>
+> **Tech Stack Requirements:**
+> - Next.js 15+ (App Router, TypeScript)
+> - Tailwind CSS + shadcn/ui components
+> - Supabase (Auth, PostgREST Data API, SQL migrations)
+> - PWA capabilities (manifest, service worker)
+>
+> **Constraints:**
+> - No business logic yet (just shell + auth wiring)
+> - Must use Supabase JS (not Prisma/Drizzle)
+> - Mobile-first responsive design
+> - Dark/light theme support
+> - RLS-ready database schema
 >
 > ---
+>
 > ### Implement These Tasks
 > 1) **Scaffold**
->    - Create project `resellr` with Next.js 15, TS, ESLint, `--app`, `--src-dir`, alias `@/*`.
+>    - Create project `snapflip` with Next.js 15, TS, ESLint, `--app`, `--src-dir`, alias `@/*`.
 >    - Add dependencies:
 >      - UI: `tailwindcss postcss autoprefixer -D`, `shadcn-ui`, `tailwindcss-animate`
 >      - Supabase: `@supabase/supabase-js`
 >      - PWA: `next-pwa`
->      - Charts (later): `recharts`
+>      - Icons: `lucide-react`
+>    - Configure Tailwind with shadcn/ui theme
+>    - Set up ESLint and Prettier
 >
-> 2) **Tailwind setup**
->    - `tailwind.config.ts` with `darkMode: ["class"]`, `content: ["./src/**/*.{ts,tsx}"]`, centered container (2xl: 1400px), extended color tokens bound to CSS vars (border, input, ring, background, foreground, primary, secondary, muted, accent, destructive, card), radius tokens, and plugin `tailwindcss-animate`.
->    - `postcss.config.js` as standard.
->    - `src/styles/globals.css` with `:root` and `.dark` HSL token variables + `@tailwind base/components/utilities`.
+> 2) **Design System**
+>    - Configure shadcn/ui with Tailwind
+>    - Set up CSS variables for light/dark themes
+>    - Create theme toggle component
+>    - Ensure mobile-first responsive breakpoints
 >
-> 3) **shadcn/ui**
->    - Init shadcn and add components: `button input card table dialog dropdown-menu form toast sheet badge tooltip tabs textarea select avatar progress`.
+> 3) **Project Structure**
+>    - `src/app/` (App Router)
+>    - `src/components/ui/` (shadcn components)
+>    - `src/lib/supabase/` (Supabase clients)
+>    - `src/types/` (TypeScript types)
+>    - `supabase/migrations/` (SQL migrations)
 >
 > 4) **App shell + PWA**
->    - `src/app/layout.tsx` with `Metadata` (title “Resellr — modern reseller PWA”), `themeColor` for light/dark, link to `/manifest.webmanifest`, `<body className="bg-background text-foreground antialiased">`.
+>    - `src/app/layout.tsx` with `Metadata` (title "Snapflip — modern reseller PWA"), `themeColor` for light/dark, link to `/manifest.webmanifest`, `<body className="bg-background text-foreground antialiased">`.
 >    - Components:
->      - `src/components/header.tsx`: brand “Resellr”, nav placeholders (Dashboard, Inventory, Sales, Expenses, Insights), a dark-mode toggle, and mobile Sheet menu.
+>      - `src/components/header.tsx`: brand "Snapflip", nav placeholders (Dashboard, Inventory, Sales, Expenses, Insights), a dark-mode toggle, and mobile Sheet menu.
 >      - `src/components/footer.tsx`: minimal footer with Privacy/Terms placeholders.
 >      - `src/components/theme-toggle.tsx`: simple class-based dark/light toggle.
->    - `src/app/page.tsx`: landing hero (headline + subtext), CTA buttons (“Get started”, “Learn more”), and a 3-card grid (“Inventory”, “Sales”, “Expenses”) using shadcn `Card`.
+>    - `src/app/page.tsx`: landing hero (headline + subtext), CTA buttons ("Get started", "Learn more"), and a 3-card grid ("Inventory", "Sales", "Expenses") using shadcn `Card`.
 >    - `next.config.mjs`:
 >      - Wrap with `next-pwa` (`dest: "public"`, `register: true`, `skipWaiting: true`, `disable` if not prod).
 >      - Add security headers: `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
->    - `public/manifest.webmanifest` with name/short_name “Resellr”, `display: "standalone"`, theme/background colors, and 192/512 icons.
+>    - `public/manifest.webmanifest` with name/short_name "Snapflip", `display: "standalone"`, theme/background colors, and 192/512 icons.
 >    - Placeholder icons at `public/icons/icon-192.png` and `public/icons/icon-512.png`.
 >
 > 5) **Supabase wiring (Data API)**

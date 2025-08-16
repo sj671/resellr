@@ -1,4 +1,4 @@
-# SECURITY.md — Resellr
+# SECURITY.md — Snapflip
 **Version:** 0.1  
 **Scope:** Phase 0 baseline (extends with each phase)
 

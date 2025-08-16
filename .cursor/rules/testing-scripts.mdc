@@ -1,0 +1,56 @@
+# Testing Script Standards
+
+When creating test scripts, follow these established patterns:
+
+## Documentation Requirements
+Every test script must include comprehensive documentation on how to use it, similar to the pattern established in [seed.mjs](mdc:scripts/seed.mjs).
+
+## Script Structure
+1. **Header Documentation**: Clear description of what the script does
+2. **Usage Instructions**: Step-by-step how to run the script
+3. **Environment Setup**: Required environment variables and setup
+4. **Cleanup Instructions**: How to clean up after testing
+5. **Examples**: Sample commands with expected outputs
+
+## Naming Convention
+- Use descriptive names: `test_rls.mjs`, `bulk_inventory.mjs`, `cleanup.mjs`
+- Include `.mjs` extension for ES modules
+- Use snake_case for filenames
+
+## Environment Handling
+- Always check for required environment variables
+- Use `export $(grep -v '^#' .env.local | xargs)` pattern for loading env
+- Provide clear error messages if environment is not properly configured
+
+## Testing Patterns
+Follow the established testing workflow:
+1. **Seed**: Create test data with `pnpm run seed`
+2. **Test**: Run your specific test script
+3. **Cleanup**: Use `node scripts/cleanup.mjs` to remove test data
+4. **Verify**: Ensure RLS isolation with `node scripts/test_rls.mjs`
+
+## Example Template
+```javascript
+#!/usr/bin/env node
+
+/**
+ * Script Name: [Description]
+ * 
+ * Usage:
+ * 1. Load environment: export $(grep -v '^#' .env.local | xargs)
+ * 2. Run script: node scripts/script_name.mjs
+ * 3. Cleanup: node scripts/cleanup.mjs
+ * 
+ * Environment Variables:
+ * - NEXT_PUBLIC_SUPABASE_URL: Required
+ * - NEXT_PUBLIC_SUPABASE_ANON_KEY: Required
+ * 
+ * Example:
+ * export $(grep -v '^#' .env.local | xargs)
+ * node scripts/script_name.mjs
+ */
+```
+description:
+globs:
+alwaysApply: false
+---

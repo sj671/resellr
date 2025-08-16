@@ -10,7 +10,8 @@ export async function POST(request: Request) {
   try {
     const form = await request.formData();
     const file = form.get("file");
-    const limit = String(form.get("limit") || "12");
+    const limit = String(form.get("limit") || "50");
+    const offset = String(form.get("offset") || "0");
     if (!(file instanceof Blob)) {
       return NextResponse.json({ error: "missing_file" }, { status: 400 });
     }
@@ -34,7 +35,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         image: base64,
         filter: "soldItems",
-        limit: Number(limit) || 12,
+        limit: Number(limit) || 50,
+        offset: Number(offset) || 0,
         sort: "newlyListed",
       }),
     });

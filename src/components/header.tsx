@@ -25,7 +25,7 @@ export default async function Header() {
         <div className="flex items-center gap-4 min-w-0">
           <NavToggle />
           <Link href="/" className="font-semibold text-lg select-none">
-            <span className="inline-block bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">Resellr</span>
+            <span className="inline-block bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">Snapflip</span>
           </Link>
           {nav}
         </div>

@@ -51,7 +51,7 @@ Snapflip is a modern PWA for resellers to track inventory, sales, expenses, and 
   - Auth start: `src/app/api/ebay/auth/start/route.ts` (builds authorize URL using `EBAY_RU_NAME`, sets CSRF state cookie, requires user session)
   - Callback: `src/app/auth/callback/ebay/route.ts` (validates state, exchanges code for tokens, upserts into `public.ebay_connections`)
   - Sync now: `src/app/api/ebay/sync-now/route.ts` (refreshes token if needed; fetches recent orders; idempotent upsert into `sales`; updates `sync_state`)
-  - See `_project_docs/resellr_phase3_tasks.md` for detailed tasks and acceptance criteria.
+  - See `_project_docs/snapflip_phase3_tasks.md` for detailed tasks and acceptance criteria.
 
 ### Phase 4 — Insights & Exports
 - KPIs (Revenue, Fees, COGS, Net, ROI, Sell‑Through)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Resellr — Phase 3 Env & OAuth URL Test Script
+ * Snapflip — Phase 3 Env & OAuth URL Test Script
  *
  * Purpose:
  * - Validate required eBay OAuth env vars
@@ -58,7 +58,7 @@ import path from 'node:path';
 import { URL, URLSearchParams } from 'node:url';
 
 function printHeader() {
-  console.log('Resellr — Phase 3 Env & OAuth URL Test Script');
+  console.log('Snapflip — Phase 3 Env & OAuth URL Test Script');
 }
 
 function printHelp() {

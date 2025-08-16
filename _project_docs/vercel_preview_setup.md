@@ -8,13 +8,13 @@ Goal: Run a stable Sandbox-backed staging at a fixed preview domain to test eBay
 
 Option A — Add a Preview domain to this project
 - In Vercel → Project → Settings → Domains → Add
-- Enter a domain/subdomain you control, e.g. `staging.resellr.app`
+- Enter a domain/subdomain you control, e.g. `staging.snapflip.app`
 - Assign it to the Preview environment
-- Result: `https://staging.resellr.app` always points to the latest Preview deploy
+- Result: `https://staging.snapflip.app` always points to the latest Preview deploy
 
 Option B — Separate “staging” project (simple)
-- Duplicate this project in Vercel as `resellr-staging`
-- Assign a stable domain, e.g. `resellr-staging.vercel.app` (or a custom domain)
+- Duplicate this project in Vercel as `snapflip-staging`
+- Assign a stable domain, e.g. `snapflip-staging.vercel.app` (or a custom domain)
 - Use Sandbox env vars in this project
 
 Note: eBay OAuth requires an exact redirect. Stable Preview domain avoids updating eBay settings every PR.
@@ -42,7 +42,7 @@ After adding variables, redeploy.
 
 ## 3) eBay Sandbox settings
 In eBay Developer Portal (Sandbox app):
-- Redirect URL (for your Sandbox RuName): `https://<preview-domain>/auth/callback/ebay`, e.g. `https://staging.resellr.app/auth/callback/ebay`
+- Redirect URL (for your Sandbox RuName): `https://<preview-domain>/auth/callback/ebay`, e.g. `https://staging.snapflip.app/auth/callback/ebay`
 - Privacy Policy URL: `https://<preview-domain>/privacy`
 - Accepted URL: `https://<preview-domain>/settings?ebay=connected`
 - Declined URL: `https://<preview-domain>/settings?ebay_error=declined`

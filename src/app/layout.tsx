@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Resellr — modern reseller PWA",
-  description: "Installable PWA shell for Resellr with Tailwind, shadcn/ui, and Supabase wiring.",
+  title: "Snapflip",
+  description: "Snapflip is a modern reseller app for eBay.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

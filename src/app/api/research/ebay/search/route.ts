@@ -11,13 +11,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q")?.trim();
     const imageUrl = searchParams.get("imageUrl")?.trim();
-    const limit = Number(searchParams.get("limit") || 12);
+    const limit = Number(searchParams.get("limit") || 50);
+    const offset = Number(searchParams.get("offset") || 0);
     const marketplaceId = process.env.EBAY_MARKETPLACE_ID || "EBAY_US";
-    
-    console.log("q", q);
-    console.log("imageUrl", imageUrl);
-    console.log("limit", limit);
-    console.log("marketplaceId", marketplaceId);
 
     const token = await getApplicationAccessToken();
 
@@ -25,7 +21,8 @@ export async function GET(request: Request) {
     if (q) {
       const url = new URL(`${apiBase()}/buy/browse/v1/item_summary/search`);
       url.searchParams.set("q", q);
-      url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 50)));
+      url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 200)));
+      url.searchParams.set("offset", String(offset));
       const resp = await fetch(url.toString(), {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -41,7 +38,8 @@ export async function GET(request: Request) {
     if (imageUrl) {
       const url = new URL(`${apiBase()}/buy/browse/v1/item_summary/search_by_image`);
       url.searchParams.set("image_url", imageUrl);
-      url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 50)));
+      url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 200)));
+      url.searchParams.set("offset", String(offset));
       const resp = await fetch(url.toString(), {
         headers: {
           Authorization: `Bearer ${token}`,

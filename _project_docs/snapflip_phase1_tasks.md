@@ -1,4 +1,4 @@
-Resellr — Phase 1 Tasks (Auth Baseline)
+Snapflip — Phase 1 Tasks (Auth Baseline)
 
 Status: complete (with email/password auth instead of magic link).
 

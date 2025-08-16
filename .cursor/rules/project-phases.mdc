@@ -1,0 +1,42 @@
+# Snapflip Project Phases
+
+## Current Status: Phase 2 Complete ✅
+
+**Phase 2 - Data Foundation** has been completed with:
+- Full CRUD operations for inventory, listings, sales, and expenses
+- RLS policies implemented on all user-owned tables
+- Complete UI routes and forms
+- Database types generated and working
+- Testing scripts established
+
+## Next Phase: Phase 3 - eBay Sync 🚀
+
+**Phase 3** focuses on eBay integration:
+- eBay OAuth for connecting user accounts
+- Data synchronization (orders and listings import)
+- Background sync workers
+- Enhanced UI for eBay data alongside manual entries
+
+## Project Structure
+- **Database**: Supabase with RLS policies
+- **Frontend**: Next.js 15 with App Router and TypeScript
+- **Styling**: Tailwind CSS with light/dark theme
+- **PWA**: Progressive Web App with service worker
+- **Security**: Server-side Supabase client, RLS enforcement
+
+## Key Files
+- [README.md](mdc:README.md) - Project overview and setup
+- [_project_docs/](mdc:_project_docs/) - Phase documentation and tasks
+- [supabase/migrations/](mdc:supabase/migrations/) - Database schema changes
+- [scripts/](mdc:scripts/) - Testing and utility scripts
+
+## Development Workflow
+1. Create migrations with GMT timestamp naming
+2. Update database types: `pnpm run db:types`
+3. Test with established scripts (seed, cleanup, RLS testing)
+4. Follow testing script standards for new scripts
+5. Document all changes in project docs
+description:
+globs:
+alwaysApply: false
+---

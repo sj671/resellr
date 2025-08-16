@@ -1,0 +1,30 @@
+# Supabase Migration Naming Convention
+
+All Supabase migration files must follow this strict naming pattern:
+
+## Format
+`YYYYMMDDHHMMSS_description.sql`
+
+## Example
+- `20241220143000_add_ebay_connections.sql`
+- `20241220144530_update_inventory_schema.sql`
+- `20241220150000_add_sync_state_table.sql`
+
+## Rules
+1. **Date/Time**: Use current GMT date and time when creating the migration
+2. **Format**: YYYYMMDDHHMMSS (24-hour format)
+3. **Description**: Use lowercase with underscores, descriptive of the change
+4. **Extension**: Always `.sql`
+
+## Why This Matters
+- Ensures migrations are applied in chronological order
+- Prevents conflicts when multiple developers create migrations
+- Makes it easy to track when schema changes were introduced
+- Follows Supabase best practices for migration management
+
+## When Creating Migrations
+Always use the current GMT timestamp to ensure proper ordering and avoid conflicts.
+description:
+globs:
+alwaysApply: false
+---
