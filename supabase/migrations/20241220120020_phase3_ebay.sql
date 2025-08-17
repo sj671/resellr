@@ -23,8 +23,8 @@ drop policy if exists "read own ebay_connections" on public.ebay_connections;
 create policy "read own ebay_connections" on public.ebay_connections for select using (user_id = auth.uid());
 
 drop policy if exists "upsert own ebay_connections" on public.ebay_connections;
-create policy "upsert own ebay_connections" on public.ebay_connections for insert with check (user_id = auth.uid());
-create policy "update own ebay_connections" on public.ebay_connections for update using (user_id = auth.uid());
+--create policy "upsert own ebay_connections" on public.ebay_connections for insert with check (user_id = auth.uid());
+--create policy "update own ebay_connections" on public.ebay_connections for update using (user_id = auth.uid());
 
 -- sync_state: track cursors/last sync time per provider/resource
 create table if not exists public.sync_state (
@@ -43,8 +43,8 @@ alter table public.sync_state enable row level security;
 drop policy if exists "read own sync_state" on public.sync_state;
 create policy "read own sync_state" on public.sync_state for select using (user_id = auth.uid());
 drop policy if exists "upsert own sync_state" on public.sync_state;
-create policy "upsert own sync_state" on public.sync_state for insert with check (user_id = auth.uid());
-create policy "update own sync_state" on public.sync_state for update using (user_id = auth.uid());
+--create policy "upsert own sync_state" on public.sync_state for insert with check (user_id = auth.uid());
+--create policy "update own sync_state" on public.sync_state for update using (user_id = auth.uid());
 
 -- touch triggers
 create or replace function public.touch_updated_at() returns trigger as $$

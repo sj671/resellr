@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState, createContext, useContext } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useTheme } from "@/components/theme-provider";
 
 // Create a context for sharing menu state
 const MenuContext = createContext<{
@@ -77,6 +78,7 @@ export function MobileNav({
   loading: boolean;
 }) {
   const { isOpen, setIsOpen } = useMenu();
+  const { theme, toggleTheme } = useTheme();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -189,13 +191,15 @@ export function MobileNav({
       
       {/* Slide-out Menu */}
       <div 
-        className={`mobile-nav fixed left-0 top-0 h-full w-80 bg-background border-r z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className="mobile-nav fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-background border-r z-50 flex flex-col transform transition-transform duration-300 ease-in-out"
+        style={{
+          willChange: 'transform',
+          maxHeight: '100dvh',
+          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)'
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-semibold">Menu</h2>
+        <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 rounded-lg hover:bg-accent transition-colors"
@@ -205,20 +209,37 @@ export function MobileNav({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+          <h2 className="text-lg font-semibold">Menu</h2>
         </div>
 
         {/* Navigation */}
-        <nav className="p-6 space-y-2">
-          <MenuLink href="/research" label="Research" onClick={() => setIsOpen(false)} />
-          <MenuLink href="/coming-soon" label="Coming Soon" onClick={() => setIsOpen(false)} />
+        <nav className="p-6 space-y-2 overflow-y-auto flex-1">
+          <MenuLink href="/dashboard" label="Dashboard" onClick={() => setIsOpen(false)} />
+          <MenuLink href="/search" label="Search" onClick={() => setIsOpen(false)} />
           <MenuLink href="/profile" label="Profile" onClick={() => setIsOpen(false)} />
           <MenuLink href="/settings" label="Settings" onClick={() => setIsOpen(false)} />
-          <MenuLink href="/dashboard" label="Dashboard" onClick={() => setIsOpen(false)} />
+          
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors"
+          >
+            {theme === 'dark' ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+              </svg>
+            )}
+            {theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+          </button>
         </nav>
 
         {/* User Section */}
         {!loading && (
-          <div className="absolute bottom-0 left-0 right-0 p-6 border-t">
+          <div className="absolute bottom-0 left-0 right-0 p-6 border-t flex-shrink-0">
             {user ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -320,6 +341,12 @@ export function UserMenu({
           <div className="py-1 text-sm">
             <Link href="/dashboard" className="block px-3 py-2 hover:bg-muted" onClick={() => setOpen(false)}>
               Dashboard
+            </Link>
+            <Link href="/search" className="block px-3 py-2 hover:bg-muted" onClick={() => setOpen(false)}>
+              Search
+            </Link>
+            <Link href="/profile" className="block px-3 py-2 hover:bg-muted" onClick={() => setOpen(false)}>
+              Profile
             </Link>
             <Link href="/settings" className="block px-3 py-2 hover:bg-muted" onClick={() => setOpen(false)}>
               Settings

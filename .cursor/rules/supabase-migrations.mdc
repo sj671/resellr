@@ -26,6 +26,9 @@ All Supabase migration files must follow this strict naming pattern:
 
 ## When Creating Migrations
 Always use the current GMT timestamp to ensure proper ordering and avoid conflicts.
+
+## Related Rules
+- See `.cursor/rules/authentication-patterns.mdc` for proper authentication patterns
 description:
 globs:
 alwaysApply: false

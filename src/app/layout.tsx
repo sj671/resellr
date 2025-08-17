@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import AuthRefreshListener from "@/components/auth-refresh-listener";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "black",
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
@@ -31,16 +32,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased min-h-screen`}>
-        <AuthRefreshListener />
-        <Header />
-        <main className="container py-8">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <AuthRefreshListener />
+          <Header />
+          <main className="container py-8">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

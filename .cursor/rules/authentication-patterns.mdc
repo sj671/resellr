@@ -1,0 +1,170 @@
+# Authentication Patterns
+
+## Use /api/me Endpoint for Authentication
+
+**ALWAYS** use the `/api/me` endpoint for checking user authentication status instead of Supabase client-side methods.
+
+### Why This Matters
+- **Reliable**: `/api/me` endpoint is proven to work consistently
+- **No Race Conditions**: Server-side authentication is more reliable than client-side
+- **Consistent**: Same authentication method used across the entire app
+- **Debugging**: Easier to troubleshoot authentication issues
+
+### ✅ Correct Pattern
+```typescript
+// Use this pattern for authentication checks
+const response = await fetch('/api/me');
+const data = await response.json();
+
+if (!data.user) {
+  // User is not authenticated
+  router.push('/login?next=/profile');
+  return;
+}
+
+// User is authenticated, proceed with data
+const user = data.user;
+const profile = data.profile;
+```
+
+### ❌ Avoid These Patterns
+```typescript
+// DON'T use these unreliable methods
+const { data: { user }, error } = await supabase.auth.getUser();
+const { data: { session } } = await supabase.auth.getSession();
+
+// These can fail with "Authentication error" and cause race conditions
+```
+
+### When to Use Each Method
+
+#### **Use `/api/me` for:**
+- Checking if user is logged in (client-side)
+- Getting current user data (client-side)
+- Getting user profile information (client-side)
+- Authentication state validation (client-side)
+
+#### **Use Supabase Client for:**
+- Sign in/out operations (client-side)
+- Password changes (client-side)
+- Email verification (client-side)
+- **Server-side API routes** (where `supabase.auth.getUser()` is appropriate)
+- **NOT for client-side authentication status checks**
+
+### Important Distinction
+
+#### **Client-Side Components (React Pages/Components)**
+```typescript
+// ❌ DON'T do this in React components
+const { data: { user } } = await supabase.auth.getUser();
+
+// ✅ DO this instead
+const response = await fetch('/api/me');
+const data = await response.json();
+const user = data.user;
+```
+
+#### **Server-Side API Routes**
+```typescript
+// ✅ This is CORRECT in API routes
+export async function GET() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  // ... rest of API logic
+}
+```
+
+### Implementation Examples
+
+#### **Profile Page Authentication**
+```typescript
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      // Use the reliable /api/me endpoint
+      const response = await fetch('/api/me');
+      const data = await response.json();
+      
+      if (!data.user) {
+        router.push('/login?next=/profile');
+        return;
+      }
+      
+      setUser(data.user);
+      if (data.profile) {
+        setProfile(data.profile);
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+      router.push('/login?next=/profile');
+    }
+  };
+  
+  fetchData();
+}, [router]);
+```
+
+#### **Protected Route Check**
+```typescript
+const checkAuth = async () => {
+  const response = await fetch('/api/me');
+  const data = await response.json();
+  
+  if (!data.user) {
+    router.push('/login?next=' + encodeURIComponent(pathname));
+    return false;
+  }
+  
+  return true;
+};
+```
+
+### Error Handling
+Always handle authentication failures gracefully:
+```typescript
+try {
+  const response = await fetch('/api/me');
+  if (!response.ok) {
+    throw new Error('Authentication failed');
+  }
+  
+  const data = await response.json();
+  if (!data.user) {
+    // Redirect to login
+    return;
+  }
+} catch (error) {
+  // Handle network errors, auth failures, etc.
+  console.error('Auth check failed:', error);
+  // Redirect to login or show error
+}
+```
+
+### Benefits of This Approach
+1. **Consistency**: Same auth method across all components
+2. **Reliability**: Server-side auth is more stable
+3. **Performance**: Single API call instead of multiple client checks
+4. **Debugging**: Easier to trace authentication issues
+5. **Maintenance**: Centralized authentication logic
+
+## Remember
+
+### **Client-Side (React Components)**
+- **ALWAYS** use `/api/me` for authentication checks
+- **NEVER** use `supabase.auth.getUser()` or `supabase.auth.getSession()` for auth status
+- **ONLY** use Supabase client for auth operations (sign in/out, password changes)
+- **ALWAYS** handle authentication failures gracefully with redirects
+
+### **Server-Side (API Routes)**
+- **ALWAYS** use `supabase.auth.getUser()` in API routes for authentication
+- **NEVER** use `/api/me` endpoint from server-side code
+- **ALWAYS** use `createSupabaseServerClient()` for server-side Supabase operations
+
+### **Key Principle**
+- **Client-side**: Use `/api/me` endpoint for auth checks
+- **Server-side**: Use Supabase client directly for auth checks
+- **Never mix**: Don't use client-side Supabase auth methods for status checks
+description:
+globs:
+alwaysApply: false
+---

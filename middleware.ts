@@ -39,15 +39,24 @@ export function middleware(req: NextRequest) {
     return res;
   }
 
-  // Handle authentication protection for protected routes
+  // Handle authentication protection for protected routes (only for pages, not API routes)
   const { pathname } = req.nextUrl;
-  const protectedRoutes = ['/research', '/settings', '/dashboard', '/profile'];
+  const protectedRoutes = ['/search', '/settings', '/dashboard', '/profile'];
   
-  if (protectedRoutes.some(route => pathname.startsWith(route))) {
-    // Check for authentication cookie/token
-    const authCookie = req.cookies.get('sb-access-token') || req.cookies.get('sb-refresh-token');
+  // Only apply auth protection to page routes, not API routes
+  if (!pathname.startsWith('/api/') && protectedRoutes.some(route => pathname.startsWith(route))) {
+    // Check for authentication cookies - Supabase uses multiple cookie names
+    const authCookies = [
+      'sb-access-token',
+      'sb-refresh-token',
+      'supabase-auth-token',
+      'supabase-auth-token-1',
+      'supabase-auth-token-2'
+    ];
     
-    if (!authCookie) {
+    const hasAuthCookie = authCookies.some(cookieName => req.cookies.get(cookieName));
+    
+    if (!hasAuthCookie) {
       // Redirect to login with the intended destination
       const loginUrl = new URL('/login', req.url);
       loginUrl.searchParams.set('next', pathname);
@@ -67,13 +76,13 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/api/:path*",
-    "/research/:path*",
+          "/search/:path*",
     "/settings/:path*", 
     "/dashboard/:path*",
     "/profile/:path*",
-    "/research",
+          "/search",
     "/settings",
-    "/dashboard", 
+    "/dashboard",
     "/profile"
   ],
 };

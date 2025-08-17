@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import ThemeToggle from "@/components/theme-toggle";
 import { NavToggle, MobileNav, MenuProvider } from "@/components/header_client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+// import { useTheme } from "@/components/theme-provider";
 
 export default function Header() {
   const [user, setUser] = useState<{ email?: string; user_metadata?: { full_name?: string; avatar_url?: string } } | null>(null);
@@ -72,15 +72,12 @@ export default function Header() {
       <header className="border-b bg-background">
         <div className="container h-16 flex items-center justify-between">
           <div className="flex items-center gap-4 min-w-0">
-            <NavToggle />
             <Link href="/" className="font-semibold text-lg select-none">
               <span className="inline-block bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">Snapflip</span>
             </Link>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="hidden sm:inline-flex">
-              <ThemeToggle />
-            </span>
+            <NavToggle />
           </div>
         </div>
         <MobileNav user={user} loading={loading} />

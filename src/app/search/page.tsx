@@ -18,7 +18,7 @@ export default function SearchPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // const [uploadedPreview, setUploadedPreview] = useState<string>("");
+  const [uploadedPreview, setUploadedPreview] = useState<string>("");
   // const [searchMethod, setSearchMethod] = useState<"text" | "image">("text");
   const [resultLimit, setResultLimit] = useState(50);
   const [authChecking, setAuthChecking] = useState(true);
@@ -34,19 +34,28 @@ export default function SearchPage() {
         
         if (!data.user) {
           // User not authenticated, redirect to login
-          router.push('/login?next=/research');
+          router.push('/login?next=/search');
           return;
         }
         
         setAuthChecking(false);
       } catch (error) {
         console.error('Auth check failed:', error);
-        router.push('/login?next=/research');
+        router.push('/login?next=/search');
       }
     };
 
     checkAuth();
   }, [router]);
+
+  // Cleanup uploadedPreview when component unmounts
+  useEffect(() => {
+    return () => {
+      if (uploadedPreview && uploadedPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(uploadedPreview);
+      }
+    };
+  }, [uploadedPreview]);
 
   // Show loading while checking authentication
   if (authChecking) {
@@ -72,7 +81,7 @@ export default function SearchPage() {
       params.set("limit", String(resultLimit));
       params.set("offset", "0"); // Always start from first page
       
-      const resp = await fetch(`/api/research/ebay/search?${params.toString()}`);
+      const resp = await fetch(`/api/search/ebay/search?${params.toString()}`);
       const json = await resp.json();
       if (!resp.ok) throw new Error(json?.detail || json?.error || resp.statusText);
       
@@ -83,7 +92,7 @@ export default function SearchPage() {
       sessionStorage.setItem('searchQuery', q.trim() || '');
       sessionStorage.setItem('searchImageUrl', imageUrl.trim() || '');
       
-      window.location.href = '/research/results';
+      window.location.href = '/search/results';
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
@@ -96,15 +105,20 @@ export default function SearchPage() {
           // setSearchMethod("image");
     
     try {
-      // Set a local object URL preview
-      const previewUrl = URL.createObjectURL(file);
-      // setUploadedPreview(previewUrl);
+      // Convert file to base64 data URL for persistent storage
+      const base64Preview = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      
+      setUploadedPreview(base64Preview);
       
       const fd = new FormData();
       fd.set("file", file);
       fd.set("limit", String(resultLimit));
       fd.set("offset", "0"); // Always start from first page
-      const resp = await fetch("/api/research/ebay/search-by-image", { method: "POST", body: fd });
+      const resp = await fetch("/api/search/ebay/search-by-image", { method: "POST", body: fd });
       const json = await resp.json();
       if (!resp.ok) throw new Error(json?.detail || json?.error || resp.statusText);
       
@@ -112,10 +126,10 @@ export default function SearchPage() {
       
       // Store results and preview in sessionStorage and redirect to results page
       sessionStorage.setItem('searchResults', JSON.stringify(items));
-      sessionStorage.setItem('searchPreview', previewUrl);
+      sessionStorage.setItem('searchPreview', base64Preview);
       sessionStorage.setItem('searchImageUrl', '');
       
-      window.location.href = '/research/results';
+      window.location.href = '/search/results';
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
@@ -136,7 +150,7 @@ export default function SearchPage() {
           <h1 className="text-3xl font-bold">Search Products</h1>
           <p className="text-muted-foreground mt-1">Search eBay by text or image to find pricing and market data</p>
         </div>
-        <Link href="/research/saved" className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors">
+        <Link href="/search/saved" className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors">
           View Saved Searches
         </Link>
       </div>

@@ -122,7 +122,7 @@ export default function SearchResultsPage() {
       if (query) params.set("q", query);
       if (imageUrl) params.set("imageUrl", imageUrl);
       
-      const resp = await fetch(`/api/research/ebay/search?${params.toString()}`);
+      const resp = await fetch(`/api/search/ebay/search?${params.toString()}`);
       const json = await resp.json();
       if (!resp.ok) throw new Error(json?.detail || json?.error || resp.statusText);
       
@@ -176,7 +176,7 @@ export default function SearchResultsPage() {
           }))
         : undefined;
 
-      const resp = await fetch("/api/research/save", {
+      const resp = await fetch("/api/search/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -229,9 +229,9 @@ export default function SearchResultsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Search Results</h1>
-          <Link href="/research" className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors">
-            ← Back to Research
-          </Link>
+                  <Link href="/search" className="rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors">
+          ← Back to Search
+        </Link>
         </div>
         <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 p-4">
           <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function SearchResultsPage() {
               Save Search
             </button>
           )}
-          <Link href="/research" className="rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors">
+          <Link href="/search" className="rounded-lg border px-3 py-2 text-sm hover:bg-accent transition-colors">
             New Search
           </Link>
         </div>
@@ -301,7 +301,7 @@ export default function SearchResultsPage() {
             Showing {results.length} items
           </div>
                            <Link
-                   href="/research"
+                   href="/search"
                    className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
                  >
                    ← Back to Search
@@ -324,7 +324,7 @@ export default function SearchResultsPage() {
               </h3>
             </div>
                                <Link
-                     href="/research"
+                     href="/search"
                      className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
                    >
                      Modify Search
